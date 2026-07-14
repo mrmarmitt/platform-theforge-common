@@ -13,3 +13,11 @@
 #frag sprite.frag
 #include "sprite.frag.fsl"
 #end
+
+#vert line.vert
+#include "line.vert.fsl"
+#end
+
+#frag line.frag
+#include "line.frag.fsl"
+#end

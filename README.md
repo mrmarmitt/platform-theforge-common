@@ -18,7 +18,24 @@ Separar responsabilidades entre os projetos:
 - jogos (`8puzzle`, `spaceinvaders`, `asteroids`, ...): dominio, regras,
   cenas concretas e assets de cada jogo.
 
-## Conteudo (0.1.0)
+## Conteudo (0.2.0)
+
+### Novo na 0.2.0
+
+- `ForgeLineUi` (`forgeline`): **batcher de LINHAS 2D** — `drawLine` e
+  `drawPolyline` em pixels, cor por vertice, um draw call por lote. Mesma
+  mecanica do batcher de sprites (vertex buffer dinamico com um trecho por frame
+  in flight), mas **sem textura, sem sampler e sem SRT**: a cor vem no vertice.
+  Ligado por `LineBatcherDesc::enabled` (default `false` — quem nao desenha
+  linha nao paga pelo pipeline).
+
+  Trazido pelo `asteroids`, que precisava desenhar corpos que GIRAM. A
+  alternativa avaliada era rotacionar sprites; linha ganhou porque os arcades
+  vetoriais (Asteroids, Lunar Lander, Tempest) sao desenhados a linha e porque
+  **linha dispensa atlas**: nao ha arte para produzir, so geometria. Um poligono
+  girado e uma lista de pontos girados.
+
+### Base (0.1.0)
 
 Extraido da PoC do Space Invaders (task 01), com o vocabulario de jogo
 convertido em configuracao:
@@ -45,16 +62,22 @@ src/TheForgeCommon/          <- adicionar ao include path do jogo
   TheForgeWindowManager.h/.cpp   (depende de cengine + The Forge)
   ForgeUi.h/.cpp                 (depende de The Forge)
   ForgeSpriteUi.h/.cpp           (depende de The Forge)
+  ForgeLineUi.h/.cpp             (depende de The Forge)
   Format.h                       (std puro)
   Shaders/FSL/                   (Shaders.list para o passo FSL do jogo)
 ```
+
+As camadas 2D sao a ORDEM DE CHAMADA, atravessando as tres pontes: o
+`forgeui::drawText` da flush nos lotes pendentes de sprites e linhas antes de
+gravar texto. Entao, dentro do `draw()` da cena, "geometria primeiro, texto
+depois" poe o HUD por cima do jogo.
 
 O consumo segue a receita dos jogos (vcxproj MSBuild, layout de checkouts
 irmaos na mesma pasta — `The-Forge`, `cengine`, este repo e o jogo):
 
 1. incluir `src/TheForgeCommon` no include path (os includes internos sao
    relativos: `"ForgeUi.h"`, `"Shaders/FSL/sprite.srt.h"`);
-2. compilar os tres `.cpp` junto do jogo;
+2. compilar os quatro `.cpp` junto do jogo;
 3. apontar o passo FSL para `src/TheForgeCommon/Shaders/FSL/Shaders.list`
    (o `#include` do `defaults.h` assume o layout de checkouts irmaos) — ou
    copiar/estender a lista se o jogo tiver shaders proprios;

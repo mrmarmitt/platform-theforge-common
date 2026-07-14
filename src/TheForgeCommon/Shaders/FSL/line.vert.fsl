@@ -1,0 +1,29 @@
+// Vertex shader do batcher de LINHAS. Posicao ja em NDC (projecao pixels -> NDC
+// na CPU, no ForgeLineUi) e cor por vertice (R8G8B8A8_UNORM no buffer; o input
+// assembler entrega float4 0..1).
+//
+// Sem SRT: este shader nao le recurso nenhum — nem textura, nem sampler, nem
+// constante. Toda a informacao vem no vertice. E por isso que o wireframe
+// dispensa atlas: nao ha arte, so geometria.
+
+STRUCT(VSInput)
+{
+    DATA(float2, Position, POSITION);
+    DATA(float4, Color, TEXCOORD0);
+};
+
+STRUCT(VSOutput)
+{
+    DATA(float4, Position, SV_Position);
+    DATA(float4, Color, COLOR);
+};
+
+ROOT_SIGNATURE(DefaultRootSignature)
+VSOutput VS_MAIN(VSInput In)
+{
+    INIT_MAIN;
+    VSOutput Out;
+    Out.Position = float4(In.Position, 0.0f, 1.0f);
+    Out.Color = In.Color;
+    RETURN(Out);
+}

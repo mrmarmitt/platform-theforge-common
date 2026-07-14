@@ -216,7 +216,10 @@ void loadGameFontSystem(const int32_t width, const int32_t height, const ReloadT
 TheForgeWindowManager::TheForgeWindowManager(const TheForgeWindowDesc& desc):
     m_desc(desc), m_width(desc.width), m_height(desc.height)
 {
+    // Frames in flight sao do CASCO, nao do jogo: o desc do consumidor nao tem
+    // como saber quantos, entao o casco preenche.
     m_desc.sprites.frameCount = kDataBufferCount;
+    m_desc.lines.frameCount = kDataBufferCount;
     gClearColor[0] = m_desc.clearColor[0];
     gClearColor[1] = m_desc.clearColor[1];
     gClearColor[2] = m_desc.clearColor[2];
@@ -317,8 +320,10 @@ bool TheForgeWindowManager::initGraphics()
     INIT_RS_DESC(rootDesc, "default.rootsig", "compute.rootsig");
     initRootSignature(pRenderer, &rootDesc);
 
-    // batcher de sprites: atlas + sampler + VB dinamico (no-op sem atlas)
+    // batchers: sprites (atlas + sampler + VB) e linhas (so VB) — ambos no-op
+    // quando desligados na desc
     forgesprite::init(pRenderer, m_desc.sprites);
+    forgeline::init(pRenderer, m_desc.lines);
 
     // fontes: o contexto fontstash ja existe (platformInitFontSystem no
     // init()); aqui entram a fonte e os recursos de GPU do sistema
@@ -342,10 +347,12 @@ bool TheForgeWindowManager::initGraphics()
 
     loadGameFontSystem(m_width, m_height, RELOAD_TYPE_ALL);
 
-    // shader + descriptor set + pipeline do batcher (ALL = tudo)
+    // shader + descriptor set + pipeline dos batchers (ALL = tudo)
     ReloadDesc reloadAll = { RELOAD_TYPE_ALL };
     forgesprite::load(&reloadAll, pSwapChain->ppRenderTargets[0]->mFormat, pSwapChain->ppRenderTargets[0]->mSampleCount,
                       pSwapChain->ppRenderTargets[0]->mSampleQuality);
+    forgeline::load(&reloadAll, pSwapChain->ppRenderTargets[0]->mFormat, pSwapChain->ppRenderTargets[0]->mSampleCount,
+                    pSwapChain->ppRenderTargets[0]->mSampleQuality);
 
     waitForAllResourceLoads();
     return true;
@@ -422,15 +429,17 @@ void TheForgeWindowManager::update()
     cmdSetScissor(gFrameCmd, 0, 0, pRenderTarget->mWidth, pRenderTarget->mHeight);
 
     forgesprite::begin(gFrameCmd, (float)pRenderTarget->mWidth, (float)pRenderTarget->mHeight, gFrameIndex);
+    forgeline::begin(gFrameCmd, (float)pRenderTarget->mWidth, (float)pRenderTarget->mHeight, gFrameIndex);
     forgeui::beginDraw(gFrameCmd, (float)pRenderTarget->mWidth, (float)pRenderTarget->mHeight, gFontID);
 }
 
 void TheForgeWindowManager::present()
 {
-    // Fim do quadro (task 16 da cengine): a cauda do lote de sprites, fecha
-    // o command buffer que as fases desenharam, submete e apresenta. Roda
+    // Fim do quadro (task 16 da cengine): a cauda dos lotes (sprites e linhas),
+    // fecha o command buffer que as fases desenharam, submete e apresenta. Roda
     // inclusive no ultimo quadro.
     forgesprite::flush();
+    forgeline::flush();
 
     RenderTarget* pRenderTarget = pSwapChain->ppRenderTargets[gFrameImageIndex];
 
@@ -474,11 +483,13 @@ void TheForgeWindowManager::cleanup()
 
     ReloadDesc reloadAll = { RELOAD_TYPE_ALL };
     forgesprite::unload(&reloadAll);
+    forgeline::unload(&reloadAll);
 
     unloadFontSystem(RELOAD_TYPE_ALL);
     exitFontSystem();
 
     forgesprite::exit();
+    forgeline::exit();
 
     removeSwapChain(pRenderer, pSwapChain);
     exitGpuCmdRing(pRenderer, &gGraphicsCmdRing);

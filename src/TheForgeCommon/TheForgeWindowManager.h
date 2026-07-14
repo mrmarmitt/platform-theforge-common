@@ -24,6 +24,7 @@
 
 #include <cengine/core/IWindowManager.hpp>
 
+#include "ForgeLineUi.h"
 #include "ForgeSpriteUi.h"
 
 // Configuracao do casco — montada pelo composition root do jogo. Os const
@@ -45,6 +46,10 @@ struct TheForgeWindowDesc
     // Batcher de sprites: atlasPath nulo desliga (jogo so de texto).
     // O frameCount e preenchido pelo casco (frames in flight).
     forgesprite::SpriteBatcherDesc sprites = {};
+
+    // Batcher de linhas (wireframe vetorial): enabled=false desliga.
+    // O frameCount tambem e preenchido pelo casco.
+    forgeline::LineBatcherDesc lines = {};
 
     // Cor de clear do swapchain (RGBA 0..1).
     float clearColor[4] = { 0.02f, 0.02f, 0.05f, 1.0f };

@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <vector>
 
+#include "ForgeLineUi.h"
 #include "ForgeSpriteUi.h"
 
 namespace {
@@ -84,9 +85,10 @@ float textWidth(const std::string& text, const float fontSize)
 
 void drawText(const std::string& text, const float x, const float y, const float fontSize, const uint32_t colorAbgr)
 {
-    // Camadas = ordem de chamada atravessando as pontes: sprites pendentes
-    // sao desenhados AGORA, para este texto ficar por cima.
+    // Camadas = ordem de chamada atravessando as pontes: o que estiver pendente
+    // nos batchers e desenhado AGORA, para este texto ficar por cima.
     forgesprite::flush();
+    forgeline::flush();
 
     FontDrawDesc desc = {};
     desc.pText = text.c_str();
