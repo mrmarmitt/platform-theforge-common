@@ -84,7 +84,20 @@ void flush();
 // Enfileira um sprite: regiao do atlas, canto superior esquerdo em pixels,
 // escala (multiplica o tamanho nativo da regiao) e tint ABGR (mesmo formato
 // do forgeui::color; com atlas branco, o tint E a cor).
+//
+// A escala e UNIFORME — o formato que o spaceinvaders precisava, onde o sprite
+// era 1:1 com as unidades do mundo.
 void drawSprite(const SpriteRegion& region, float x, float y, float scale, uint32_t colorAbgr);
+
+// Enfileira um sprite num RETANGULO DE DESTINO arbitrario (x, y, w, h em
+// pixels): a regiao e esticada para caber, sem preservar a proporcao.
+//
+// Existe porque a escala uniforme nao da conta de um jogo cujos corpos tem
+// proporcoes diferentes entre si (o breakout: tijolo 60x20, raquete 110x16,
+// bola 12x12) — nem de uma projecao arena->tela que estica X e Y de forma
+// diferente. O quad ja e montado a partir de dois cantos; esta funcao so para
+// de derivar o segundo canto de uma escala.
+void drawSpriteRect(const SpriteRegion& region, float x, float y, float w, float h, uint32_t colorAbgr);
 
 Stats lastFrameStats();
 

@@ -243,6 +243,12 @@ void begin(Cmd* cmd, const float width, const float height, const uint32_t frame
 
 void drawSprite(const SpriteRegion& region, const float x, const float y, const float scale, const uint32_t colorAbgr)
 {
+    drawSpriteRect(region, x, y, region.w * scale, region.h * scale, colorAbgr);
+}
+
+void drawSpriteRect(const SpriteRegion& region, const float x, const float y, const float w, const float h,
+                    const uint32_t colorAbgr)
+{
     if (!gEnabled)
     {
         return;
@@ -259,9 +265,9 @@ void drawSprite(const SpriteRegion& region, const float x, const float y, const 
     }
 
     const float x0 = x / gWidth * 2.0f - 1.0f;
-    const float x1 = (x + region.w * scale) / gWidth * 2.0f - 1.0f;
+    const float x1 = (x + w) / gWidth * 2.0f - 1.0f;
     const float y0 = 1.0f - y / gHeight * 2.0f;
-    const float y1 = 1.0f - (y + region.h * scale) / gHeight * 2.0f;
+    const float y1 = 1.0f - (y + h) / gHeight * 2.0f;
 
     const float u0 = region.x / gAtlasW;
     const float u1 = (region.x + region.w) / gAtlasW;

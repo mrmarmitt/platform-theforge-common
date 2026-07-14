@@ -18,7 +18,20 @@ Separar responsabilidades entre os projetos:
 - jogos (`8puzzle`, `spaceinvaders`, `asteroids`, ...): dominio, regras,
   cenas concretas e assets de cada jogo.
 
-## Conteudo (0.3.0)
+## Conteudo (0.4.0)
+
+### Novo na 0.4.0
+
+- `forgesprite::drawSpriteRect(region, x, y, w, h, cor)` — desenha a regiao do
+  atlas num **retangulo de destino arbitrario**, em vez de uma escala uniforme.
+
+  O `drawSprite(region, x, y, escala, cor)` continua existindo: era o formato de
+  que o spaceinvaders precisava, onde o sprite era 1:1 com as unidades do mundo.
+  Mas escala uniforme nao da conta de um jogo cujos corpos tem proporcoes
+  diferentes entre si (o breakout: tijolo 60x20, raquete 110x16, bola 12x12), nem
+  de uma projecao arena->tela que estica X e Y de forma diferente. O quad ja era
+  montado a partir de dois cantos — a funcao nova so para de derivar o segundo
+  canto de uma escala.
 
 ### Novo na 0.3.0
 
